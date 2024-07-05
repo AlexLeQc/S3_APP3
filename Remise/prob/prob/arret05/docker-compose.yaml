@@ -1,0 +1,85 @@
+version: '3.2'
+
+services:
+  # Premier client - Ajoute et retire des tâches automatiquement
+  c1:
+    container_name: arret05-c1
+    image: a5-client1
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    depends_on:
+      - s1
+    environment:
+      - MONSERVEUR=s1
+      - MONNOM=c1
+    tty: true
+
+  # Deuxième client - Ajoute et retire des tâches automatiquement
+  c2:
+    container_name: arret05-c2
+    image: a5-client2
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    depends_on:
+      - s1
+    environment:
+      - MONSERVEUR=s1
+      - MONNOM=c2
+    tty: true
+
+  # Troisième client - Ajoute et retire des tâches automatiquement
+  c3:
+    container_name: arret05-c3
+    image: a5-client3
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    depends_on:
+      - s1
+    environment:
+      - MONSERVEUR=s1
+      - MONNOM=c3
+    tty: true
+
+  # Premier serveur - Traite les demandes todo
+  s1:
+    container_name: arret05-s1
+    image: a5-serveur
+    build:
+      context: .
+      dockerfile: Dockerfile.serveur
+    tty: true
+    depends_on:
+      - gestionnaire
+    environment:
+      - "DB_HOST=db"
+      
+
+  # Permet d'observer les tâches en cours
+  gestionnaire:
+      container_name: arret05-gestionnaire
+      image: a5-gestionnaire
+      build:
+        context: .
+        dockerfile: Dockerfile.gestionnaire
+      tty: true
+      environment:
+        - MONSERVEUR='s1'
+        - MONNOM='c1,c2,c3'
+
+  # Permet d'enregistrer les tâches
+  db:
+    container_name: arret05-db
+    image: postgres:15
+    environment:
+      - "POSTGRES_PASSWORD=postgres"
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_DB=postgres"
+    volumes:
+      - todo-db:/var/lib/postgresql/datum
+      - ./init_db/sql:/docker-entrypoint-initdb.d/
+
+volumes:
+  todo-db:
